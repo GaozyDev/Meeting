@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agora_app_id" translatable="false">f9e9928f3dbf498c86721e96013f145a</string>
+    <string name="agora_customer_id" translatable="false">97b554241e5a482889034d60a96d0265</string>
+    <string name="agora_customer_cer" translatable="false">683b0c8169c54090a69e30e4af7ad672</string>
+    <string name="bugly_app_id" translatable="false"></string>
+
+</resources>
