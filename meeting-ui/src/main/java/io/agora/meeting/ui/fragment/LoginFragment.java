@@ -58,6 +58,8 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
 
     private RoomViewModel roomVM;
 
+    private boolean isCreateMeeting = true;
+
     @Override
     public void onStart() {
         super.onStart();
@@ -98,6 +100,7 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
                         jsonObject.getInt("maxPeople")
                 );
                 Toast.makeText(getContext(), "正在加入会议~", Toast.LENGTH_SHORT).show();
+                isCreateMeeting = false;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -233,13 +236,15 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
             if (!roomModel.hasJoined()) {
                 return;
             }
-            new Thread(() -> create(binding.aetRoomName.getText(),
-                    binding.aetName.getText(),
-                    binding.aetRoomPwd.getText(),
-                    binding.swMic.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.RECORD_AUDIO),
-                    binding.swCamera.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.CAMERA),
-                    preferenceVM.getMeetingDuration().getValue(),
-                    preferenceVM.getMeetingMaxPeople().getValue())).start();
+            if (isCreateMeeting) {
+                new Thread(() -> create(binding.aetRoomName.getText(),
+                        binding.aetName.getText(),
+                        binding.aetRoomPwd.getText(),
+                        binding.swMic.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.RECORD_AUDIO),
+                        binding.swCamera.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.CAMERA),
+                        preferenceVM.getMeetingDuration().getValue(),
+                        preferenceVM.getMeetingMaxPeople().getValue())).start();
+            }
             ((MeetingActivity) requireActivity()).navigateToMainPage(requireView(), roomModel.roomId);
         });
         preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {
