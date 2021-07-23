@@ -53,7 +53,7 @@ public class MeetingListActivity extends AppCompatActivity {
 
     private void getMeetingList() {
         MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
-        String URL = "http://192.168.14.44:8080";
+        String URL = "http://quick.nat300.top";
         String uid = SpUtils.getString(MeetingListActivity.this, "uid", "");
         RequestBody requestBody = RequestBody.create(mediaType, "uid=" + uid);
         Request request = new Request.Builder()

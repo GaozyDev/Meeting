@@ -79,7 +79,7 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
         roomVM = provider.get(RoomViewModel.class);
 
         LoginFragmentArgs args = LoginFragmentArgs.fromBundle(requireArguments());
-        String json = "{\"roomName\":\"一号会议室\",\"userName\":\"高宗阳\",\"roomPwd\":\"123456\",\"openMic\":false,\"openCamera\":true,\"durationS\":2700,\"maxPeople\":1000}";
+        String json = args.getJson();
         EventBus.getDefault().register(this);
     }
 
@@ -176,20 +176,13 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
                 preferenceVM.getMeetingDuration().getValue(),
                 preferenceVM.getMeetingMaxPeople().getValue()
         );
-        new Thread(() -> create(binding.aetRoomName.getText(),
-                binding.aetName.getText(),
-                binding.aetRoomPwd.getText(),
-                binding.swMic.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.RECORD_AUDIO),
-                binding.swCamera.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.CAMERA),
-                preferenceVM.getMeetingDuration().getValue(),
-                preferenceVM.getMeetingMaxPeople().getValue())).start();
     }
 
     // TODO 临时代码
     private void create(String roomName, String userName, String roomPwd, boolean openMic, boolean openCamera,
                         int durationS, int maxPeople) {
         MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
-        String URL = "http://192.168.14.44:8080";
+        String URL = "http://quick.nat300.top";
         RequestBody requestBody = RequestBody.create(mediaType,
                 "roomName=" + roomName
                         + "&userName=" + userName
@@ -240,6 +233,13 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
             if (!roomModel.hasJoined()) {
                 return;
             }
+            new Thread(() -> create(binding.aetRoomName.getText(),
+                    binding.aetName.getText(),
+                    binding.aetRoomPwd.getText(),
+                    binding.swMic.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.RECORD_AUDIO),
+                    binding.swCamera.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.CAMERA),
+                    preferenceVM.getMeetingDuration().getValue(),
+                    preferenceVM.getMeetingMaxPeople().getValue())).start();
             ((MeetingActivity) requireActivity()).navigateToMainPage(requireView(), roomModel.roomId);
         });
         preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {

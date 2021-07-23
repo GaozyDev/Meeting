@@ -46,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
 
     void login(String body) {
         MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
-        String URL = "http://192.168.14.44:8080";
+        String URL = "http://quick.nat300.top";
         RequestBody requestBody = RequestBody.create(mediaType, body);
         Request request = new Request.Builder()
                 .url(URL + "/login")
