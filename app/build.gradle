@@ -65,5 +65,6 @@ dependencies {
 
     implementation rootProject.findProject(':meeting-ui') != null ? project(':meeting-ui') : "io.github.agoraio-usecase.meeting:meeting-ui:${rootProject.ext.maven_version['io.github.agoraio-usecase.meeting:meeting-ui']}"
     implementation rootProject.findProject(':meeting-core') != null ? project(':meeting-core') : "io.github.agoraio-usecase.meeting:meeting-core:${rootProject.ext.maven_version['io.github.agoraio-usecase.meeting:meeting-core']}"
-
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation "com.squareup.okhttp3:okhttp:4.9.0"
 }

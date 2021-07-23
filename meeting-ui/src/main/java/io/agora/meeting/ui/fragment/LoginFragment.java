@@ -4,6 +4,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +24,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.Locale;
 
 import io.agora.meeting.core.RtcNetworkMonitor;
@@ -38,11 +47,27 @@ import io.agora.meeting.ui.util.ToastUtil;
 import io.agora.meeting.ui.viewmodel.PreferenceViewModel;
 import io.agora.meeting.ui.viewmodel.RoomViewModel;
 import io.agora.meeting.ui.widget.TipsPopup;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
     private PreferenceViewModel preferenceVM;
 
     private RoomViewModel roomVM;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,6 +77,31 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
         ViewModelProvider provider = new ViewModelProvider(requireActivity());
         preferenceVM = provider.get(PreferenceViewModel.class);
         roomVM = provider.get(RoomViewModel.class);
+
+        LoginFragmentArgs args = LoginFragmentArgs.fromBundle(requireArguments());
+        String json = "{\"roomName\":\"一号会议室\",\"userName\":\"高宗阳\",\"roomPwd\":\"123456\",\"openMic\":false,\"openCamera\":true,\"durationS\":2700,\"maxPeople\":1000}";
+        EventBus.getDefault().register(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(String json) {
+        if (!TextUtils.isEmpty(json)) {
+            try {
+                JSONObject jsonObject = new JSONObject(json);
+                roomVM.enter(
+                        jsonObject.getString("roomName"),
+                        jsonObject.getString("userName"),
+                        jsonObject.getString("roomPwd"),
+                        jsonObject.getBoolean("openMic"),
+                        jsonObject.getBoolean("openCamera"),
+                        jsonObject.getInt("durationS"),
+                        jsonObject.getInt("maxPeople")
+                );
+                Toast.makeText(getContext(), "正在加入会议~", Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -63,8 +113,8 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
     protected void init() {
         setupAppBar(binding.toolbar, false);
         binding.toolbar.post(() -> binding.toolbar.setTitle(""));
-        binding.btnEnter.setOnClickListener(v->{
-            if(checkInput()){
+        binding.btnEnter.setOnClickListener(v -> {
+            if (checkInput()) {
                 KeyboardUtil.hideInput(requireActivity());
                 binding.btnEnter.showLoading();
                 enterRoom();
@@ -76,7 +126,7 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
             return true;
         });
 
-        binding.aetRoomPwd.setRightIconClickListener(v->{
+        binding.aetRoomPwd.setRightIconClickListener(v -> {
             KeyboardUtil.hideInput(requireActivity());
             new TipsPopup(this)
                     .setBackgroundColor(Color.TRANSPARENT)
@@ -97,7 +147,7 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
         EditText etMaxPeople = layout.findViewById(R.id.et_meeting_max_people);
         etDuration.setText(preferenceVM.getMeetingDuration().getValue().toString());
         etMaxPeople.setText(preferenceVM.getMeetingMaxPeople().getValue().toString());
-        ((TextView)layout.findViewById(R.id.tv_language)).setText(String.format("%s-%s", Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()).toLowerCase());
+        ((TextView) layout.findViewById(R.id.tv_language)).setText(String.format("%s-%s", Locale.getDefault().getLanguage(), Locale.getDefault().getCountry()).toLowerCase());
         new AlertDialog.Builder(requireContext())
                 .setView(layout)
                 .setPositiveButton(R.string.cmm_confirm, (dialog, which) -> {
@@ -108,11 +158,11 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
                 .show();
     }
 
-    private boolean checkInput(){
+    private boolean checkInput() {
         boolean ret = binding.aetRoomName.check();
-        if(!ret) return false;
+        if (!ret) return false;
         ret = binding.aetName.check();
-        if(!ret) return false;
+        if (!ret) return false;
         return ret;
     }
 
@@ -126,15 +176,55 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
                 preferenceVM.getMeetingDuration().getValue(),
                 preferenceVM.getMeetingMaxPeople().getValue()
         );
+        new Thread(() -> create(binding.aetRoomName.getText(),
+                binding.aetName.getText(),
+                binding.aetRoomPwd.getText(),
+                binding.swMic.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.RECORD_AUDIO),
+                binding.swCamera.isChecked() && AndPermission.hasPermissions(LoginFragment.this, Permission.CAMERA),
+                preferenceVM.getMeetingDuration().getValue(),
+                preferenceVM.getMeetingMaxPeople().getValue())).start();
     }
 
-    private void initSaveConfigView(){
+    // TODO 临时代码
+    private void create(String roomName, String userName, String roomPwd, boolean openMic, boolean openCamera,
+                        int durationS, int maxPeople) {
+        MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
+        String URL = "http://192.168.14.44:8080";
+        RequestBody requestBody = RequestBody.create(mediaType,
+                "roomName=" + roomName
+                        + "&userName=" + userName
+                        + "&roomPwd=" + roomPwd
+                        + "&openMic=" + openMic
+                        + "&openCamera=" + openCamera
+                        + "&durationS=" + durationS
+                        + "&maxPeople=" + maxPeople
+        );
+        Request request = new Request.Builder()
+                .url(URL + "/createMeeting")
+                .post(requestBody)
+                .build();
+        OkHttpClient client = new OkHttpClient();
+        try {
+            try (Response response = client.newCall(request).execute()) {
+                JSONObject jsonObject = new JSONObject(response.body().string());
+                int code = jsonObject.getInt("code");
+                if (code == 0) {
+                    JSONObject data = jsonObject.getJSONObject("data");
+                    Log.e("gaozy", "createMeeting:" + data);
+                }
+            }
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initSaveConfigView() {
         binding.aetRoomName.setText(roomVM.configInfo.roomName);
         binding.aetRoomPwd.setText(roomVM.configInfo.roomPwd);
         binding.aetName.setText(roomVM.configInfo.userName);
     }
 
-    private void saveConfigInfo(){
+    private void saveConfigInfo() {
         roomVM.configInfo.roomName = binding.aetRoomName.getText();
         roomVM.configInfo.roomPwd = binding.aetRoomPwd.getText();
         roomVM.configInfo.userName = binding.aetName.getText();
@@ -147,12 +237,12 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
         binding.setViewModel(preferenceVM);
         roomVM.roomModel.observe(getViewLifecycleOwner(), roomModel -> {
             binding.btnEnter.showButtonText();
-            if(!roomModel.hasJoined()){
+            if (!roomModel.hasJoined()) {
                 return;
             }
-            ((MeetingActivity)requireActivity()).navigateToMainPage(requireView(), roomModel.roomId);
+            ((MeetingActivity) requireActivity()).navigateToMainPage(requireView(), roomModel.roomId);
         });
-        preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable->{
+        preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {
             MeetingApplication.getMeetingEngine().setDefaultCameraFont(enable);
         });
         MeetingApplication.getMeetingEngine().enableNetQualityCheck(new RtcNetworkMonitor.OnNetQualityChangeListener() {
@@ -206,7 +296,7 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
     }
 
     private void readMeetingFromClipboard() {
-        if(getContext() == null || binding == null){
+        if (getContext() == null || binding == null) {
             return;
         }
         // 用于解析的语言资源
@@ -217,11 +307,11 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding> {
         };
         for (Locale locale : locales) {
             resource = StringUtil.getLocalResource(requireContext(), locale);
-            if(resource == null){
+            if (resource == null) {
                 continue;
             }
             roomInfo = ClipboardUtil.readFromClipboard(requireContext(), resource.getString(R.string.invite_meeting_name, ""));
-            if(!TextUtils.isEmpty(roomInfo)){
+            if (!TextUtils.isEmpty(roomInfo)) {
                 break;
             }
         }

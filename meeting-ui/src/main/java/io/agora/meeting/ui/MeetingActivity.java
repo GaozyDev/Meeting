@@ -33,6 +33,8 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.Locale;
 
 import io.agora.meeting.core.annotaion.Keep;
@@ -42,6 +44,8 @@ import io.agora.meeting.core.log.Logger;
 import io.agora.meeting.core.model.RoomModel;
 import io.agora.meeting.ui.base.AppBarDelegate;
 import io.agora.meeting.ui.databinding.LayoutRatingBinding;
+import io.agora.meeting.ui.fragment.LoginFragment;
+import io.agora.meeting.ui.fragment.LoginFragmentArgs;
 import io.agora.meeting.ui.fragment.MeetingFragmentArgs;
 import io.agora.meeting.ui.fragment.SimpleWebFragmentArgs;
 import io.agora.meeting.ui.fragment.WhiteBoardFragmentArgs;
@@ -74,6 +78,12 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         initOnCreated();
         DataBindingUtil.setContentView(this, R.layout.activity_main);
         initPrivacy();
+
+        String json = getIntent().getStringExtra("json");
+        if (!TextUtils.isEmpty(json)) {
+            EventBus.getDefault().postSticky(json);
+//            navigateToLoginPage(getWindow().getDecorView(), json);
+        }
     }
 
     @Override
@@ -121,7 +131,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                 }
             });
             termsDialog.show();
-        }else{
+        } else {
             initAfterAgreenPolicy();
         }
     }
@@ -263,7 +273,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                     if (titleRes == R.string.main_close_title) {
                         showRateDialog(roomId, userId, dismiss);
                     } else if (titleRes == R.string.main_removed_from_room) {
-                        navigateToLoginPage(getWindow().getDecorView());
+                        navigateToLoginPage(getWindow().getDecorView(), "");
                     }
                 }).setCancelable(false).show();
     }
@@ -289,7 +299,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                 })
                 .setOnDismissListener(dialog1 -> {
                     if (dismiss != null) dismiss.run();
-                    navigateToLoginPage(getWindow().getDecorView());
+                    navigateToLoginPage(getWindow().getDecorView(), "");
                 })
                 .show();
     }
@@ -423,8 +433,12 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         safeNavigate(view, R.id.action_to_meetingSettingFragment, null);
     }
 
-    public void navigateToLoginPage(View view) {
-        safeNavigate(view, R.id.action_global_loginFragment, null);
+//    public void navigateToLoginPage(View view) {
+//        safeNavigate(view, R.id.action_global_loginFragment, null);
+//    }
+
+    public void navigateToLoginPage(View view, String json) {
+        safeNavigate(view, R.id.action_global_loginFragment, new LoginFragmentArgs.Builder().setJson(json).build().toBundle());
     }
 
     public void navigateToAboutFragment(View view) {

@@ -96,7 +96,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         roomVM = viewModelProvider.get(RoomViewModel.class);
         if (roomVM.getRoomModel() == null) {
             Logger.e("MeetingFragment >> room has been destroyed");
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToLoginPage(null, "");
             return;
         }
         streamsVM = roomVM.getStreamsViewModel();
@@ -105,7 +105,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         if (localUserVM.getUserModel() == null) {
             Logger.e("Enter Room >> local user not found, localUserId=" + localUserId + ",existUserIds=" + roomVM.getExistUserIds());
             roomVM.leave();
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToLoginPage(null, "");
             return;
         }
 
@@ -113,7 +113,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         if(localMainStreamVM == null || localMainStreamVM.getStreamModel() == null){
             Logger.e("Enter Room >> local user main stream not found, localUserId=" + localUserId + ",existUserIds=" + roomVM.getExistUserIds());
             roomVM.leave();
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToLoginPage(null, "");
             return;
         }
 
