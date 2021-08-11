@@ -21,4 +21,6 @@
     <string name="key_room_pwd" translatable="false">room_pwd</string>
     <string name="key_invite" translatable="false">invite</string>
     <string name="key_show_privacy_terms" translatable="false">show_privacy_terms</string>
+
+    <string name="key_username" translatable="false">username</string>
 </resources>

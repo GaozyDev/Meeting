@@ -19,6 +19,8 @@ public class PreferenceViewModel extends AndroidViewModel {
     private final PreferenceLiveData.IntPreferenceLiveData meetingMaxPeople;
     private final PreferenceLiveData.BooleanPreferenceLiveData showPrivacy;
 
+    private final PreferenceLiveData.StringPreferenceLiveData username;
+
     public PreferenceViewModel(Application application) {
         super(application);
         SharedPreferences preferences = PreferenceUtil.getSharedPreferences();
@@ -30,6 +32,8 @@ public class PreferenceViewModel extends AndroidViewModel {
         meetingDuration = new PreferenceLiveData.IntPreferenceLiveData(preferences, application.getString(R.string.key_meeting_duration), 45 * 60);
         meetingMaxPeople = new PreferenceLiveData.IntPreferenceLiveData(preferences, application.getString(R.string.key_meeting_max_people), 1000);
         showPrivacy = new PreferenceLiveData.BooleanPreferenceLiveData(preferences, application.getString(R.string.key_show_privacy_terms), true);
+
+        username = new PreferenceLiveData.StringPreferenceLiveData(preferences, application.getString(R.string.key_username), null);
     }
 
     public PreferenceLiveData.StringPreferenceLiveData getName() {
@@ -86,5 +90,9 @@ public class PreferenceViewModel extends AndroidViewModel {
 
     public PreferenceLiveData.BooleanPreferenceLiveData getCameraFront() {
         return cameraFront;
+    }
+
+    public PreferenceLiveData.StringPreferenceLiveData getUsername() {
+        return username;
     }
 }

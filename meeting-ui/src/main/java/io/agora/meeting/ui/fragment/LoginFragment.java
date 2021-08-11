@@ -42,7 +42,7 @@ public class LoginFragment extends Fragment {
         super.onResume();
         String token = SpUtils.getString(requireContext(), Constant.SP.TOKEN, "");
         if (!TextUtils.isEmpty(token)) {
-            ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView(), "");
+            ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView());
         }
     }
 
@@ -67,7 +67,7 @@ public class LoginFragment extends Fragment {
                 .enqueue(new BaseCallback<>(data -> {
                     if (!TextUtils.isEmpty(data)) {
                         SpUtils.putString(requireContext(), Constant.SP.TOKEN, data);
-                        ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView(), "");
+                        ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView());
                     }
                 }, throwable -> Toast.makeText(requireContext(), "噢，登录失败了~", Toast.LENGTH_SHORT).show()));
 

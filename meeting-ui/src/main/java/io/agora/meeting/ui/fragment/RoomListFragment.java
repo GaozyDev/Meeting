@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
@@ -35,13 +36,21 @@ import java.util.Locale;
 
 import io.agora.meeting.core.RtcNetworkMonitor;
 import io.agora.meeting.core.annotaion.DeviceNetQuality;
+import io.agora.meeting.ui.Constant;
 import io.agora.meeting.ui.MeetingActivity;
 import io.agora.meeting.ui.MeetingApplication;
 import io.agora.meeting.ui.R;
 import io.agora.meeting.ui.base.BaseFragment;
 import io.agora.meeting.ui.databinding.FragmentRoomListBinding;
+import io.agora.meeting.ui.http.BaseCallback;
+import io.agora.meeting.ui.http.MeetingService;
+import io.agora.meeting.ui.http.body.req.RoomEnterReq;
+import io.agora.meeting.ui.http.body.req.VerifyTokenReq;
+import io.agora.meeting.ui.http.network.RetrofitManager;
+import io.agora.meeting.ui.ui.RoomRecyclerAdapter;
 import io.agora.meeting.ui.util.ClipboardUtil;
 import io.agora.meeting.ui.util.KeyboardUtil;
+import io.agora.meeting.ui.util.SpUtils;
 import io.agora.meeting.ui.util.StringUtil;
 import io.agora.meeting.ui.util.ToastUtil;
 import io.agora.meeting.ui.viewmodel.PreferenceViewModel;
@@ -59,6 +68,8 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     private RoomViewModel roomVM;
 
     private boolean isCreateMeeting = true;
+
+    private RoomRecyclerAdapter mRoomAdapter;
 
     @Override
     public void onStart() {
@@ -138,6 +149,7 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
         roomVM.failure.observe(getViewLifecycleOwner(), throwable -> {
             binding.btnEnter.showButtonText();
         });
+
 
         initSaveConfigView();
     }
@@ -296,6 +308,51 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     public void onResume() {
         super.onResume();
         binding.aetName.postDelayed(this::readMeetingFromClipboard, 500);
+
+        String token = SpUtils.getString(requireContext(), Constant.SP.TOKEN, "");
+        binding.roomListRv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        mRoomAdapter = new RoomRecyclerAdapter();
+        mRoomAdapter.setOnRoomClickListener((room -> {
+            getRoomEnter(token, room.index);
+        }));
+        binding.roomListRv.setAdapter(mRoomAdapter);
+        verifyToken(token);
+    }
+
+    private void verifyToken(String token) {
+        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+        meetingService.verifyToken(new VerifyTokenReq(token))
+                .enqueue(new BaseCallback<>(data -> {
+                    preferenceVM.getUsername().setValue(data.name);
+                    getRoomList(token);
+                }, throwable -> {
+                    // TODO 清除登录信息
+                    Toast.makeText(requireContext(), "Token校验失败了~", Toast.LENGTH_SHORT).show();
+                }));
+    }
+
+    private void getRoomList(String token) {
+        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+        meetingService.roomList(new VerifyTokenReq(token))
+                .enqueue(new BaseCallback<>(data -> mRoomAdapter.setRoomList(data),
+                        throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
+    }
+
+    private void getRoomEnter(String token, int index) {
+        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+        meetingService.roomEnter(new RoomEnterReq(token, index))
+                .enqueue(new BaseCallback<>(data -> {
+                    roomVM.enter(
+                            data.id,
+                            preferenceVM.getUsername().getValue(),
+                            data.pass,
+                            binding.swMic.isChecked() && AndPermission.hasPermissions(this, Permission.RECORD_AUDIO),
+                            binding.swCamera.isChecked() && AndPermission.hasPermissions(this, Permission.CAMERA),
+                            preferenceVM.getMeetingDuration().getValue(),
+                            preferenceVM.getMeetingMaxPeople().getValue()
+                    );
+                },
+                        throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
     }
 
     private void readMeetingFromClipboard() {

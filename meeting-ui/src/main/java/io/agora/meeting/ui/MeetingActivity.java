@@ -407,8 +407,8 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         }
     }
 
-    public void navigateToRoomListPage(View view, String json) {
-        safeNavigate(view, R.id.action_to_loginFragment, null);
+    public void navigateToRoomListPage(View view) {
+        safeNavigate(view, R.id.action_to_roomListFragment, null);
     }
 
     public void navigateToWebPage(View view, String url) {

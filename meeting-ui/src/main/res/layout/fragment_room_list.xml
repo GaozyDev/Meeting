@@ -21,7 +21,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:visibility="gone">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -54,10 +55,10 @@
             </LinearLayout>
         </FrameLayout>
 
-
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="gone">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -70,15 +71,15 @@
                     android:layout_height="@dimen/global_edit_text_height"
                     android:hint="@string/login_room_name"
                     android:inputType="textPersonName"
+                    app:banEmoji="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:maxLength="50"
                     app:minLength="3"
                     app:tipEmpty="@string/login_tip_room_name_empty"
                     app:tipOver="@string/login_tip_room_name_over"
-                    app:tipShort="@string/login_tip_room_name_short"
-                    app:banEmoji="true"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:tipShort="@string/login_tip_room_name_short" />
 
                 <io.agora.meeting.ui.widget.AutoEditText
                     android:id="@+id/aet_room_pwd"
@@ -86,14 +87,14 @@
                     android:layout_height="@dimen/global_edit_text_height"
                     android:hint="@string/login_room_pwd"
                     android:inputType="textPassword"
-                    app:maxLength="20"
-                    app:minLength="3"
-                    app:tipOver="@string/login_tip_room_pass_over"
-                    app:rightIconSrc="@drawable/ic_tips"
                     app:banEmoji="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/aet_room_name"/>
+                    app:layout_constraintTop_toBottomOf="@+id/aet_room_name"
+                    app:maxLength="20"
+                    app:minLength="3"
+                    app:rightIconSrc="@drawable/ic_tips"
+                    app:tipOver="@string/login_tip_room_pass_over" />
 
                 <io.agora.meeting.ui.widget.AutoEditText
                     android:id="@+id/aet_name"
@@ -102,15 +103,15 @@
                     android:hint="@string/login_name"
                     android:inputType="textPersonName"
                     android:text="@={viewModel.name}"
-                    app:tipEmpty="@string/login_tip_user_name_empty"
-                    app:tipOver="@string/login_tip_user_name_over"
-                    app:tipShort="@string/login_tip_user_name_short"
                     app:banEmoji="true"
-                    app:maxLength="20"
-                    app:minLength="3"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/aet_room_pwd" />
+                    app:layout_constraintTop_toBottomOf="@+id/aet_room_pwd"
+                    app:maxLength="20"
+                    app:minLength="3"
+                    app:tipEmpty="@string/login_tip_user_name_empty"
+                    app:tipOver="@string/login_tip_user_name_over"
+                    app:tipShort="@string/login_tip_user_name_short" />
 
                 <TextView
                     android:id="@+id/tv_tips"
@@ -177,13 +178,13 @@
                     android:layout_height="42dp"
                     android:layout_marginTop="34dp"
                     android:background="@color/global_accent"
-                    app:pbText="@string/login_enter"
-                    app:pbTextColor="@color/global_text_color_white"
-                    app:pbProgressColor="@android:color/white"
-                    app:pbTextSize="@dimen/global_text_size_middle"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tv_mic" />
+                    app:layout_constraintTop_toBottomOf="@+id/tv_mic"
+                    app:pbProgressColor="@android:color/white"
+                    app:pbText="@string/login_enter"
+                    app:pbTextColor="@color/global_text_color_white"
+                    app:pbTextSize="@dimen/global_text_size_middle" />
 
                 <LinearLayout
                     android:id="@+id/layout_limit_tip"
@@ -191,26 +192,26 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="28dp"
                     android:background="@drawable/bg_tv_tip"
-                    android:padding="16dp"
                     android:orientation="horizontal"
+                    android:padding="16dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/btn_enter" >
+                    app:layout_constraintTop_toBottomOf="@+id/btn_enter">
 
 
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_speaker"/>
+                        android:src="@drawable/ic_speaker" />
 
                     <TextView
                         android:id="@+id/tv_limit_tip"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:text="@string/login_limit_tip"
                         android:textColor="@color/global_text_color_white"
-                        android:layout_marginStart="10dp"
-                        android:textSize="@dimen/global_text_size_small"/>
+                        android:textSize="@dimen/global_text_size_small" />
 
                 </LinearLayout>
 
@@ -219,6 +220,20 @@
 
         </ScrollView>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:paddingStart="@dimen/permission_sp_16"
+            android:paddingEnd="@dimen/permission_sp_16"
+            android:text="@={viewModel.username}"
+            android:textSize="@dimen/permission_sp_20" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/room_list_rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp" />
     </LinearLayout>
 
 </layout>

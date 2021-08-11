@@ -4,6 +4,8 @@ public interface Constant {
 
     String SSO_URL = "http://sso.xiaoxitech.com";
 
+    String MEETING_URL = "http://meeting.xiaoxitech.com";
+
     String PROJECT_ID = "ar2gejxf";
 
     interface SP {

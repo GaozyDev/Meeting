@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_main"
-    app:startDestination="@id/loginSSOFragment">
+    app:startDestination="@id/loginFragment">
 
     <fragment
-        android:id="@+id/loginSSOFragment"
+        android:id="@+id/loginFragment"
         android:name="io.agora.meeting.ui.fragment.LoginFragment"
         android:label="fragment_login_s_s_o"
         tools:layout="@layout/fragment_login" >
         <action
-            android:id="@+id/action_to_loginFragment"
-            app:destination="@id/loginFragment" />
+            android:id="@+id/action_to_roomListFragment"
+            app:destination="@id/roomListFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/loginFragment"
+        android:id="@+id/roomListFragment"
         android:name="io.agora.meeting.ui.fragment.RoomListFragment"
         tools:layout="@layout/fragment_room_list">
         <action
