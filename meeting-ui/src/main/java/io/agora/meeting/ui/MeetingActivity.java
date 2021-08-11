@@ -44,8 +44,6 @@ import io.agora.meeting.core.log.Logger;
 import io.agora.meeting.core.model.RoomModel;
 import io.agora.meeting.ui.base.AppBarDelegate;
 import io.agora.meeting.ui.databinding.LayoutRatingBinding;
-import io.agora.meeting.ui.fragment.LoginFragment;
-import io.agora.meeting.ui.fragment.LoginFragmentArgs;
 import io.agora.meeting.ui.fragment.MeetingFragmentArgs;
 import io.agora.meeting.ui.fragment.SimpleWebFragmentArgs;
 import io.agora.meeting.ui.fragment.WhiteBoardFragmentArgs;
@@ -273,7 +271,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                     if (titleRes == R.string.main_close_title) {
                         showRateDialog(roomId, userId, dismiss);
                     } else if (titleRes == R.string.main_removed_from_room) {
-                        navigateToLoginPage(getWindow().getDecorView(), "");
+                        navigateToLoginPage(getWindow().getDecorView());
                     }
                 }).setCancelable(false).show();
     }
@@ -299,7 +297,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                 })
                 .setOnDismissListener(dialog1 -> {
                     if (dismiss != null) dismiss.run();
-                    navigateToLoginPage(getWindow().getDecorView(), "");
+                    navigateToLoginPage(getWindow().getDecorView());
                 })
                 .show();
     }
@@ -409,6 +407,10 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         }
     }
 
+    public void navigateToRoomListPage(View view, String json) {
+        safeNavigate(view, R.id.action_to_loginFragment, null);
+    }
+
     public void navigateToWebPage(View view, String url) {
         safeNavigate(view, R.id.action_to_webFragment, new SimpleWebFragmentArgs.Builder(url).build().toBundle());
     }
@@ -437,8 +439,8 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
 //        safeNavigate(view, R.id.action_global_loginFragment, null);
 //    }
 
-    public void navigateToLoginPage(View view, String json) {
-        safeNavigate(view, R.id.action_global_loginFragment, new LoginFragmentArgs.Builder().setJson(json).build().toBundle());
+    public void navigateToLoginPage(View view) {
+        safeNavigate(view, R.id.action_global_loginFragment, null);
     }
 
     public void navigateToAboutFragment(View view) {

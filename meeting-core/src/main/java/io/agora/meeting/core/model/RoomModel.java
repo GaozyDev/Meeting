@@ -18,6 +18,7 @@ import io.agora.meeting.core.bean.RoomProperties;
 import io.agora.meeting.core.http.BaseCallback;
 import io.agora.meeting.core.http.body.req.JoinReq;
 import io.agora.meeting.core.http.body.req.RoomUpdateReq;
+import io.agora.meeting.core.http.body.resp.JoinResp;
 import io.agora.meeting.core.log.Logger;
 import io.agora.rte.AgoraRteChatMsg;
 import io.agora.rte.AgoraRteUserInfo;
@@ -83,13 +84,21 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         joinReqParams = body;
         Logger.d("Enter Room >> RoomModel join userId=" + userId);
         context.roomService.join(context.config.appId, roomId, body)
-                .enqueue(new BaseCallback<>(data -> {
-                    roomStartTimestamp = data.startTime;
-                    context.rteService.joinRoom(roomId, localUserId, userName, data.streamId, data.userRole);
-                }, error -> invokeCallback(callback -> {
-                    callback.onError(error);
-                    release();
-                })));
+                .enqueue(new BaseCallback<>(new BaseCallback.SuccessCallback<JoinResp>() {
+                    @Override
+                    public void onSuccess(JoinResp data) {
+                        roomStartTimestamp = data.startTime;
+                        context.rteService.joinRoom(roomId, localUserId, userName, data.streamId, data.userRole);
+                    }
+                }, new BaseCallback.FailureCallback() {
+                    @Override
+                    public void onFailure(Throwable error) {
+                        RoomModel.this.invokeCallback(callback -> {
+                            callback.onError(error);
+                            RoomModel.this.release();
+                        });
+                    }
+                }));
     }
 
 
