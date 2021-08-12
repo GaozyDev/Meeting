@@ -215,15 +215,4 @@
     <string name="notify_toast_action_mic_denied">麦克风未授权。</string>
     <string name="notify_toast_action_cam_denied">摄像头未授权。</string>
 
-    <!-- 评分 -->
-    <string name="rating_title">评分</string>
-    <string name="rating_call_quality">音视频质量</string>
-    <string name="rating_function_completeness">功能完整性</string>
-    <string name="rating_general_experience">使用体验</string>
-    <string name="rating_comment">撰写评论</string>
-    <string name="rating_comment_hint">分享您的体验心得</string>
-    <string name="rating_start">%d星</string>
-
-
-
 </resources>

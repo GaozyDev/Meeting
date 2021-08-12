@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -55,7 +54,6 @@ import io.agora.meeting.ui.http.BaseCallback;
 import io.agora.meeting.ui.http.MeetingService;
 import io.agora.meeting.ui.http.body.req.RoomStatusReq;
 import io.agora.meeting.ui.http.network.RetrofitManager;
-import io.agora.meeting.ui.ui.dialog.LoadingDialog;
 import io.agora.meeting.ui.util.SpUtils;
 import io.agora.meeting.ui.util.TimeUtil;
 import io.agora.meeting.ui.viewmodel.MessageViewModel;
@@ -616,8 +614,6 @@ public class RoomFragment extends BaseFragment<FragmentRoomBinding> {
         }
         showExitDialog();
     }
-
-    private LoadingDialog mExitLoadingDialog;
 
     private void showExitDialog() {
         dismissUserDialog();

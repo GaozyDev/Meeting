@@ -72,7 +72,10 @@ public class LoginFragment extends Fragment {
                         SpUtils.putString(requireContext(), Constant.SP.TOKEN, data);
                         ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView());
                     }
-                }, throwable -> Toast.makeText(requireContext(), "噢，登录失败了~", Toast.LENGTH_SHORT).show()));
+                }, throwable -> {
+                    SpUtils.del(requireContext(), Constant.SP.TOKEN);
+                    Toast.makeText(requireContext(), "噢，登录失败了~", Toast.LENGTH_SHORT).show();
+                }));
 
     }
 }

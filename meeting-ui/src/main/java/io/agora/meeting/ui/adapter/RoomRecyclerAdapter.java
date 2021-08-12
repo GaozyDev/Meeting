@@ -1,4 +1,4 @@
-package io.agora.meeting.ui.ui;
+package io.agora.meeting.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;

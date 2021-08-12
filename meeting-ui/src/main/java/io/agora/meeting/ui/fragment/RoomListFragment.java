@@ -32,15 +32,15 @@ import io.agora.meeting.ui.Constant;
 import io.agora.meeting.ui.MeetingActivity;
 import io.agora.meeting.ui.MeetingApplication;
 import io.agora.meeting.ui.R;
+import io.agora.meeting.ui.adapter.RoomRecyclerAdapter;
 import io.agora.meeting.ui.base.BaseFragment;
 import io.agora.meeting.ui.databinding.FragmentRoomListBinding;
+import io.agora.meeting.ui.dialog.LoadingDialog;
 import io.agora.meeting.ui.http.BaseCallback;
 import io.agora.meeting.ui.http.MeetingService;
 import io.agora.meeting.ui.http.body.req.RoomStatusReq;
 import io.agora.meeting.ui.http.body.req.VerifyTokenReq;
 import io.agora.meeting.ui.http.network.RetrofitManager;
-import io.agora.meeting.ui.ui.RoomRecyclerAdapter;
-import io.agora.meeting.ui.ui.dialog.LoadingDialog;
 import io.agora.meeting.ui.util.ClipboardUtil;
 import io.agora.meeting.ui.util.KeyboardUtil;
 import io.agora.meeting.ui.util.SpUtils;
@@ -169,7 +169,7 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
             }
             ((MeetingActivity) requireActivity()).navigateToRoomPage(requireView(), roomModel.roomId, roomModel.roomIndex);
             if (mEnterLoadingDialog != null) {
-                mEnterLoadingDialog.hide();
+                mEnterLoadingDialog.dismiss();
             }
         });
         preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {

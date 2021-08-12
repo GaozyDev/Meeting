@@ -1,4 +1,4 @@
-package io.agora.meeting.ui.ui.dialog;
+package io.agora.meeting.ui.dialog;
 
 
 import android.app.Dialog;

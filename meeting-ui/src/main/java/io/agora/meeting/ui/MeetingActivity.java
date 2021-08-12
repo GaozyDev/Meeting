@@ -41,7 +41,6 @@ import io.agora.meeting.core.http.body.resp.AppVersionResp;
 import io.agora.meeting.core.log.Logger;
 import io.agora.meeting.core.model.RoomModel;
 import io.agora.meeting.ui.base.AppBarDelegate;
-import io.agora.meeting.ui.databinding.LayoutRatingBinding;
 import io.agora.meeting.ui.fragment.SimpleWebFragmentArgs;
 import io.agora.meeting.ui.fragment.WhiteBoardFragmentArgs;
 import io.agora.meeting.ui.util.NetworkUtil;
@@ -101,7 +100,6 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         doIfNetAvailable(() -> {
             listenNetworkChange();
             checkNeedPermissions();
-            commonVM.checkVersion();
         });
     }
 
@@ -231,49 +229,8 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         new AlertDialog.Builder(this)
                 .setMessage(titleRes)
                 .setPositiveButton(R.string.cmm_know, (dialog, which) -> {
-                    if (titleRes == R.string.main_close_title) {
-                        showRateDialog(roomId, userId, dismiss);
-                    } else if (titleRes == R.string.main_removed_from_room) {
-                        navigateToRoomListPage(getWindow().getDecorView());
-                    }
-                }).setCancelable(false).show();
-    }
-
-    public void showRateDialog(String roomId, String userId, Runnable dismiss) {
-        LayoutRatingBinding binding = LayoutRatingBinding.inflate(getLayoutInflater());
-        bindRatingBarAndTv(binding.rbCallQuality, binding.tvCallQuality);
-        bindRatingBarAndTv(binding.rbFunctionCompleteness, binding.tvFunctionCompleteness);
-        bindRatingBarAndTv(binding.rbGeneralExperience, binding.tvGeneralExperience);
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.rating_title)
-                .setCancelable(true)
-                .setView(binding.getRoot())
-                .setPositiveButton(R.string.cmm_submit, (dialog1, which1) -> {
-                    MeetingApplication.getMeetingEngine().userRate(
-                            roomId, userId,
-                            binding.rbCallQuality.getRating(),
-                            binding.rbFunctionCompleteness.getRating(),
-                            binding.rbGeneralExperience.getRating(),
-                            binding.etComment.getText().toString(),
-                            throwable -> ToastUtil.showShort(throwable.getMessage())
-                    );
-                })
-                .setOnDismissListener(dialog1 -> {
-                    if (dismiss != null) dismiss.run();
                     navigateToRoomListPage(getWindow().getDecorView());
-                })
-                .show();
-    }
-
-    private void bindRatingBarAndTv(RatingBar ratingBar, TextView textView) {
-        ratingBar.setOnRatingBarChangeListener((ratingBar1, rating, fromUser) -> {
-            if (rating == 0) {
-                rating = 1;
-                ratingBar.setRating(1);
-            }
-            textView.setText(getString(R.string.rating_start, (int) rating));
-        });
-        textView.setText(getString(R.string.rating_start, (int) ratingBar.getRating()));
+                }).setCancelable(false).show();
     }
 
     public void showLoadingDialog() {

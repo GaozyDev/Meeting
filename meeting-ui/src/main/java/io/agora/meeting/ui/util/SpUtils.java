@@ -82,7 +82,7 @@ public class SpUtils {
     /**
      * 删除一条字段
      */
-    public static void delShare(Context mContext, String key) {
+    public static void del(Context mContext, String key) {
         SharedPreferences sp = mContext.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
         sp.edit().remove(key).apply();
     }
@@ -90,7 +90,7 @@ public class SpUtils {
     /**
      * 删除全部数据
      */
-    public static void delShareAll(Context mContext) {
+    public static void delAll(Context mContext) {
         SharedPreferences sp = mContext.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
         sp.edit().clear().apply();
     }
