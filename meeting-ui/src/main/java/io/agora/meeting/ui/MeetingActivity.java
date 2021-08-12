@@ -49,7 +49,6 @@ import io.agora.meeting.ui.util.ToastUtil;
 import io.agora.meeting.ui.viewmodel.CommonViewModel;
 import io.agora.meeting.ui.viewmodel.PreferenceViewModel;
 import io.agora.meeting.ui.viewmodel.RoomViewModel;
-import io.agora.meeting.ui.widget.PrivacyTermsDialog;
 
 /**
  * Description:
@@ -65,19 +64,12 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
     private AlertDialog mPoorNetDialog;
     private long lastNavigateTime;
 
-    private PrivacyTermsDialog termsDialog;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(onCreateSavedInstanceState(savedInstanceState));
         initOnCreated();
         DataBindingUtil.setContentView(this, R.layout.activity_main);
-        initPrivacy();
-
-        String json = getIntent().getStringExtra("json");
-        if (!TextUtils.isEmpty(json)) {
-//            navigateToLoginPage(getWindow().getDecorView(), json);
-        }
+        init();
     }
 
     @Override
@@ -105,32 +97,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         }
     }
 
-    private void initPrivacy() {
-        if (preferenceVM.getShowPrivacy()) {
-            if (termsDialog != null) {
-                return;
-            }
-            termsDialog = new PrivacyTermsDialog(MeetingActivity.this);
-            termsDialog.setPrivacyTermsDialogListener(new PrivacyTermsDialog.OnPrivacyTermsDialogListener() {
-                @Override
-                public void onPositiveClick() {
-                    initAfterAgreenPolicy();
-                    termsDialog = null;
-                    preferenceVM.setShowPrivacy(false);
-                }
-
-                @Override
-                public void onNegativeClick() {
-                    finish();
-                }
-            });
-            termsDialog.show();
-        } else {
-            initAfterAgreenPolicy();
-        }
-    }
-
-    private void initAfterAgreenPolicy() {
+    private void init() {
         doIfNetAvailable(() -> {
             listenNetworkChange();
             checkNeedPermissions();
@@ -373,9 +340,6 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(downloadReceiver);
-        if (termsDialog != null) {
-            termsDialog.dismiss();
-        }
     }
 
     @Override
@@ -408,7 +372,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
     }
 
     public void navigateToRoomPage(View view, String roomId, int roomIndex) {
-        safeNavigate(view, R.id.action_to_meetingFragment, null);
+        safeNavigate(view, R.id.action_to_roomFragment, null);
     }
 
     public void navigateToWebPage(View view, String url) {
@@ -430,10 +394,6 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
     public void navigateToSettingPage(View view) {
         safeNavigate(view, R.id.action_to_meetingSettingFragment, null);
     }
-
-//    public void navigateToLoginPage(View view) {
-//        safeNavigate(view, R.id.action_global_loginFragment, null);
-//    }
 
     public void backToRoomListPage(View view) {
         safeNavigate(view, R.id.action_global_roomListFragment, null);

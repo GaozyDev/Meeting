@@ -10,10 +10,19 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginStart="4dp"
-        android:layout_marginTop="150dp"
-        android:text="Account"
-        android:textSize="14sp" />
+        android:layout_marginTop="100dp"
+        android:text="小西通行证"
+        android:textSize="@dimen/permission_sp_20" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="50dp"
+        android:text="用户名"
+        android:textSize="@dimen/permission_sp_14" />
 
     <EditText
         android:id="@+id/login_et_account"
@@ -29,8 +38,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginTop="15dp"
-        android:text="Password"
-        android:textSize="14sp" />
+        android:text="密码"
+        android:textSize="@dimen/permission_sp_14" />
 
     <EditText
         android:id="@+id/login_et_password"
@@ -46,6 +55,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="70dp"
-        android:text="login"
-        android:textSize="16sp" />
+        android:text="登录"
+        android:textSize="@dimen/permission_sp_16" />
 </LinearLayout>

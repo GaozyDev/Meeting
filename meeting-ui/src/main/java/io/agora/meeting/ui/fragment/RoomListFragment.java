@@ -40,6 +40,7 @@ import io.agora.meeting.ui.http.body.req.RoomStatusReq;
 import io.agora.meeting.ui.http.body.req.VerifyTokenReq;
 import io.agora.meeting.ui.http.network.RetrofitManager;
 import io.agora.meeting.ui.ui.RoomRecyclerAdapter;
+import io.agora.meeting.ui.ui.dialog.LoadingDialog;
 import io.agora.meeting.ui.util.ClipboardUtil;
 import io.agora.meeting.ui.util.KeyboardUtil;
 import io.agora.meeting.ui.util.SpUtils;
@@ -55,6 +56,8 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     private RoomViewModel roomVM;
 
     private RoomRecyclerAdapter mRoomAdapter;
+
+    private LoadingDialog mEnterLoadingDialog;
 
     @Override
     public void onStart() {
@@ -165,6 +168,9 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                 return;
             }
             ((MeetingActivity) requireActivity()).navigateToRoomPage(requireView(), roomModel.roomId, roomModel.roomIndex);
+            if (mEnterLoadingDialog != null) {
+                mEnterLoadingDialog.hide();
+            }
         });
         preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {
             MeetingApplication.getMeetingEngine().setDefaultCameraFont(enable);
@@ -222,6 +228,8 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
         binding.roomListRv.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         mRoomAdapter = new RoomRecyclerAdapter();
         mRoomAdapter.setOnRoomClickListener((room -> {
+            mEnterLoadingDialog = new LoadingDialog(requireContext());
+            mEnterLoadingDialog.show();
             getRoomEnter(token, room.index);
         }));
         binding.roomListRv.setAdapter(mRoomAdapter);

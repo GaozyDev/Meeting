@@ -30,8 +30,8 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
         <action
-            android:id="@+id/action_to_meetingFragment"
-            app:destination="@id/meetingFragment"
+            android:id="@+id/action_to_roomFragment"
+            app:destination="@id/roomFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:launchSingleTop="true"
@@ -77,9 +77,9 @@
 
 
     <fragment
-        android:id="@+id/meetingFragment"
-        android:name="io.agora.meeting.ui.fragment.MeetingFragment"
-        tools:layout="@layout/fragment_meeting">
+        android:id="@+id/roomFragment"
+        android:name="io.agora.meeting.ui.fragment.RoomFragment"
+        tools:layout="@layout/fragment_room">
         <action
             android:id="@+id/action_to_messageFragment"
             app:destination="@id/messageFragment"
@@ -176,8 +176,8 @@
 
 
     <action
-        android:id="@+id/action_to_meetingFragment"
-        app:destination="@id/meetingFragment"
+        android:id="@+id/action_to_roomFragment"
+        app:destination="@id/roomFragment"
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"
         app:launchSingleTop="true"

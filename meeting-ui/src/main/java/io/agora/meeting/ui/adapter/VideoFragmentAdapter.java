@@ -15,7 +15,7 @@ import io.agora.meeting.ui.annotation.Layout;
 import io.agora.meeting.ui.data.RenderInfo;
 import io.agora.meeting.ui.fragment.GridAudioFragment;
 import io.agora.meeting.ui.fragment.GridVideoFragment;
-import io.agora.meeting.ui.fragment.MeetingFragment;
+import io.agora.meeting.ui.fragment.RoomFragment;
 import io.agora.meeting.ui.fragment.SpeakerVideoFragment;
 
 public class VideoFragmentAdapter extends FragmentStateAdapter {
@@ -42,7 +42,7 @@ public class VideoFragmentAdapter extends FragmentStateAdapter {
     };
 
 
-    public VideoFragmentAdapter(@NonNull MeetingFragment fragment) {
+    public VideoFragmentAdapter(@NonNull RoomFragment fragment) {
         super(fragment);
     }
 

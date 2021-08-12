@@ -27,7 +27,6 @@ import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -51,11 +50,12 @@ import io.agora.meeting.ui.annotation.Layout;
 import io.agora.meeting.ui.base.BaseFragment;
 import io.agora.meeting.ui.data.ActionWrapMsg;
 import io.agora.meeting.ui.data.PreferenceLiveData;
-import io.agora.meeting.ui.databinding.FragmentMeetingBinding;
+import io.agora.meeting.ui.databinding.FragmentRoomBinding;
 import io.agora.meeting.ui.http.BaseCallback;
 import io.agora.meeting.ui.http.MeetingService;
 import io.agora.meeting.ui.http.body.req.RoomStatusReq;
 import io.agora.meeting.ui.http.network.RetrofitManager;
+import io.agora.meeting.ui.ui.dialog.LoadingDialog;
 import io.agora.meeting.ui.util.SpUtils;
 import io.agora.meeting.ui.util.TimeUtil;
 import io.agora.meeting.ui.viewmodel.MessageViewModel;
@@ -67,7 +67,7 @@ import io.agora.meeting.ui.viewmodel.UserViewModel;
 import io.agora.meeting.ui.widget.CountDownMenuView;
 import q.rorbin.badgeview.QBadgeView;
 
-public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
+public class RoomFragment extends BaseFragment<FragmentRoomBinding> {
     private BottomNavigationItemView mic, video, chat;
     private QBadgeView qBadgeView;
     private CountDownMenuView micCdView, videoCdView;
@@ -83,7 +83,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
 
     private final Runnable updateTimeRun = this::updateTime;
 
-    private OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+    private final OnBackPressedCallback callback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
             mayShowExitDialog();
@@ -98,8 +98,8 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         setHasOptionsMenu(true);
 
         qBadgeView = new QBadgeView(getContext());
-        micCdView = new CountDownMenuView(getContext());
-        videoCdView = new CountDownMenuView(getContext());
+        micCdView = new CountDownMenuView(requireContext());
+        videoCdView = new CountDownMenuView(requireContext());
 
         ViewModelProvider viewModelProvider = new ViewModelProvider(requireActivity());
         roomVM = viewModelProvider.get(RoomViewModel.class);
@@ -132,8 +132,8 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     }
 
     @Override
-    protected FragmentMeetingBinding createBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return FragmentMeetingBinding.inflate(inflater, container, false);
+    protected FragmentRoomBinding createBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        return FragmentRoomBinding.inflate(inflater, container, false);
     }
 
     @Override
@@ -617,6 +617,8 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         showExitDialog();
     }
 
+    private LoadingDialog mExitLoadingDialog;
+
     private void showExitDialog() {
         dismissUserDialog();
 
@@ -648,17 +650,14 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     private void closeMeeting(String token, int roomIndex) {
         MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
         meetingService.closeMeeting(new RoomStatusReq(token, roomIndex))
-                .enqueue(new BaseCallback<>(data -> ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView()),
+                .enqueue(new BaseCallback<>(data -> ((MeetingActivity) requireActivity()).backToRoomListPage(requireView()),
                         throwable -> Toast.makeText(requireContext(), "关闭会议出错", Toast.LENGTH_SHORT).show()));
     }
 
     private void exitMeeting(String token, int roomIndex) {
         MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
         meetingService.exitMeeting(new RoomStatusReq(token, roomIndex))
-                .enqueue(new BaseCallback<>(data -> {
-                    Log.e("gaozy", "success");
-                    ((MeetingActivity) requireActivity()).backToRoomListPage(requireView());
-                },
+                .enqueue(new BaseCallback<>(data -> ((MeetingActivity) requireActivity()).backToRoomListPage(requireView()),
                         throwable -> Toast.makeText(requireContext(), "退出会议出错", Toast.LENGTH_SHORT).show()));
     }
 
