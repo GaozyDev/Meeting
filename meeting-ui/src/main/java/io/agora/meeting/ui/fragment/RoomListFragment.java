@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
@@ -310,7 +310,7 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
         binding.aetName.postDelayed(this::readMeetingFromClipboard, 500);
 
         String token = SpUtils.getString(requireContext(), Constant.SP.TOKEN, "");
-        binding.roomListRv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.roomListRv.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         mRoomAdapter = new RoomRecyclerAdapter();
         mRoomAdapter.setOnRoomClickListener((room -> {
             getRoomEnter(token, room.index);
