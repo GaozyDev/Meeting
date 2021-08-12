@@ -24,6 +24,8 @@ public class LoginFragment extends Fragment {
     private EditText mAccountEt;
     private EditText mPwdEt;
 
+    private boolean mIsFirstOpen = true;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +43,9 @@ public class LoginFragment extends Fragment {
     public void onResume() {
         super.onResume();
         String token = SpUtils.getString(requireContext(), Constant.SP.TOKEN, "");
-        if (!TextUtils.isEmpty(token)) {
+        if (!TextUtils.isEmpty(token) && mIsFirstOpen) {
             ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView());
+            mIsFirstOpen = false;
         }
     }
 

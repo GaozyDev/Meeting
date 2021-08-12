@@ -195,7 +195,7 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                         drawableId = R.drawable.ic_signal_idle;
                         break;
                 }
-                item.setIcon(drawableId);
+//                item.setIcon(drawableId);
             }
 
             @Override
