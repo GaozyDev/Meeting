@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -26,6 +28,7 @@ import com.yanzhenjie.permission.runtime.Permission;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -39,6 +42,7 @@ import io.agora.meeting.core.bean.RoomProperties;
 import io.agora.meeting.core.log.Logger;
 import io.agora.meeting.core.model.RoomModel;
 import io.agora.meeting.core.model.UserModel;
+import io.agora.meeting.ui.Constant;
 import io.agora.meeting.ui.MeetingActivity;
 import io.agora.meeting.ui.R;
 import io.agora.meeting.ui.adapter.FloatNotifyAdapter;
@@ -48,6 +52,11 @@ import io.agora.meeting.ui.base.BaseFragment;
 import io.agora.meeting.ui.data.ActionWrapMsg;
 import io.agora.meeting.ui.data.PreferenceLiveData;
 import io.agora.meeting.ui.databinding.FragmentMeetingBinding;
+import io.agora.meeting.ui.http.BaseCallback;
+import io.agora.meeting.ui.http.MeetingService;
+import io.agora.meeting.ui.http.body.req.RoomStatusReq;
+import io.agora.meeting.ui.http.network.RetrofitManager;
+import io.agora.meeting.ui.util.SpUtils;
 import io.agora.meeting.ui.util.TimeUtil;
 import io.agora.meeting.ui.viewmodel.MessageViewModel;
 import io.agora.meeting.ui.viewmodel.PreferenceViewModel;
@@ -96,7 +105,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         roomVM = viewModelProvider.get(RoomViewModel.class);
         if (roomVM.getRoomModel() == null) {
             Logger.e("MeetingFragment >> room has been destroyed");
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToRoomListPage(null);
             return;
         }
         streamsVM = roomVM.getStreamsViewModel();
@@ -105,15 +114,15 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         if (localUserVM.getUserModel() == null) {
             Logger.e("Enter Room >> local user not found, localUserId=" + localUserId + ",existUserIds=" + roomVM.getExistUserIds());
             roomVM.leave();
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToRoomListPage(null);
             return;
         }
 
         localMainStreamVM = localUserVM.getMainStreamViewModel();
-        if(localMainStreamVM == null || localMainStreamVM.getStreamModel() == null){
+        if (localMainStreamVM == null || localMainStreamVM.getStreamModel() == null) {
             Logger.e("Enter Room >> local user main stream not found, localUserId=" + localUserId + ",existUserIds=" + roomVM.getExistUserIds());
             roomVM.leave();
-            ((MeetingActivity) requireActivity()).navigateToLoginPage(null);
+            ((MeetingActivity) requireActivity()).navigateToRoomListPage(null);
             return;
         }
 
@@ -142,7 +151,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
             localMainStreamVM.streamModel.getValue().switchLocalMic();
         });
         binding.cameraSwitch.setOnClickListener(v -> {
-            if(localMainStreamVM.streamModel.getValue().hasVideo()){
+            if (localMainStreamVM.streamModel.getValue().hasVideo()) {
                 localMainStreamVM.streamModel.getValue().switchLocalCamera();
                 preferenceVM.switchCameraFront();
             }
@@ -222,14 +231,14 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     private void onBottomCameraClick() {
         boolean enable = !video.isActivated();
         UserModel userModel = localUserVM.getUserModel();
-        if(userModel == null){
+        if (userModel == null) {
             return;
         }
         if (!userModel.isHost() && !roomVM.hasCameraAccess() && roomVM.getRoomModel().hasHost() && enable) {
             mUserDialog = new AlertDialog.Builder(requireContext())
                     .setMessage(R.string.notify_popup_request_to_turn_cam_on)
                     .setPositiveButton(R.string.cmm_apply, (dialog, which) -> {
-                        checkCameraPermission(()->{
+                        checkCameraPermission(() -> {
                             localMainStreamVM.streamModel.getValue().setVideoEnable(true);
                             if (!userModel.isHost()) {
                                 RoomProperties roomProperties = roomVM.roomProperties.getValue();
@@ -237,7 +246,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
                                     int second = roomProperties.processes.cameraAccess.timeout;
                                     videoCdView.start(second, null);
                                 }
-                            }else{
+                            } else {
                                 disableBtnClick(video, 1000);
                                 disableBtnClick(mic, 1000);
                             }
@@ -246,13 +255,13 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
                     .setNegativeButton(R.string.cmm_cancel, (dialog, which) -> dialog.dismiss())
                     .show();
         } else {
-            if(enable){
-                checkCameraPermission(()->{
+            if (enable) {
+                checkCameraPermission(() -> {
                     disableBtnClick(video, 1000);
                     disableBtnClick(mic, 1000);
                     localMainStreamVM.streamModel.getValue().setVideoEnable(true);
                 });
-            }else{
+            } else {
                 disableBtnClick(video, 1000);
                 disableBtnClick(mic, 1000);
                 localMainStreamVM.streamModel.getValue().setVideoEnable(false);
@@ -260,13 +269,13 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         }
     }
 
-    private void disableBtnClick(View btn, long delay){
+    private void disableBtnClick(View btn, long delay) {
         btn.setClickable(false);
         Object tag = btn.getTag();
         Runnable reEnableRun;
-        if(tag instanceof Runnable){
+        if (tag instanceof Runnable) {
             reEnableRun = (Runnable) tag;
-        }else{
+        } else {
             reEnableRun = () -> btn.setClickable(true);
             btn.setTag(reEnableRun);
         }
@@ -277,21 +286,21 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     private void onBottomMicClick() {
         boolean enable = !mic.isActivated();
         UserModel userModel = localUserVM.getUserModel();
-        if(userModel == null){
+        if (userModel == null) {
             return;
         }
         if (!userModel.isHost() && !roomVM.hasMicAccess() && roomVM.getRoomModel().hasHost() && enable) {
             mUserDialog = new AlertDialog.Builder(requireContext())
                     .setMessage(R.string.notify_popup_request_to_turn_mic_on)
                     .setPositiveButton(R.string.cmm_apply, (dialog, which) -> {
-                        checkMicPermission(()->{
+                        checkMicPermission(() -> {
                             localMainStreamVM.streamModel.getValue().setAudioEnable(true);
                             if (!userModel.isHost()) {
                                 RoomProperties roomProperties = roomVM.roomProperties.getValue();
                                 if (roomProperties != null && !roomProperties.userPermission.micAccess) {
                                     micCdView.start(roomProperties.processes.micAccess.timeout, null);
                                 }
-                            }else{
+                            } else {
                                 disableBtnClick(mic, 1000);
                                 disableBtnClick(video, 1000);
                             }
@@ -300,13 +309,13 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
                     .setNegativeButton(R.string.cmm_cancel, (dialog, which) -> dialog.dismiss())
                     .show();
         } else {
-            if(enable){
-                checkMicPermission(()->{
+            if (enable) {
+                checkMicPermission(() -> {
                     disableBtnClick(mic, 1000);
                     disableBtnClick(video, 1000);
                     localMainStreamVM.streamModel.getValue().setAudioEnable(enable);
                 });
-            }else{
+            } else {
                 disableBtnClick(mic, 1000);
                 disableBtnClick(video, 1000);
                 localMainStreamVM.streamModel.getValue().setAudioEnable(enable);
@@ -353,7 +362,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     private void initHostNotify() {
         UserModel userModel = localUserVM.getUserModel();
         RoomModel roomModel = roomVM.getRoomModel();
-        if(userModel == null || roomModel == null){
+        if (userModel == null || roomModel == null) {
             return;
         }
 
@@ -368,7 +377,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
             };
             messageVM.sendActionShowMsg(message);
         }
-        if(userModel.isHost()){
+        if (userModel.isHost()) {
             messageVM.sendLocalActionMsg(new ActionMessage.AdminChange(userModel.getUserId(),
                     userModel.getUserName()));
         }
@@ -376,12 +385,12 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
 
 
     private void updateFloatNotifyBottom() {
-        if(streamsVM == null){
+        if (streamsVM == null) {
             return;
         }
         boolean isSpeakerLayout = streamsVM.getCurrentLayoutType() == Layout.SPEAKER;
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) binding.rvNotify.getLayoutParams();
-        layoutParams.bottomMargin = getResources().getDimensionPixelOffset(isSpeakerLayout && streamsVM.renders.getValue().get(0).streams.size() > 1?
+        layoutParams.bottomMargin = getResources().getDimensionPixelOffset(isSpeakerLayout && streamsVM.renders.getValue().get(0).streams.size() > 1 ?
                 R.dimen.meeting_float_notify_bottom_margin_max : R.dimen.meeting_float_notify_bottom_margin_min);
         binding.rvNotify.setLayoutParams(layoutParams);
     }
@@ -500,7 +509,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
 
     private void showActionSheet() {
         dismissUserDialog();
-        if(roomVM.getRoomModel() == null){
+        if (roomVM.getRoomModel() == null) {
             return;
         }
         boolean boardSharing = roomVM.getRoomModel().isBoardSharing();
@@ -511,7 +520,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
 
         boolean screenOwner = localUserVM.getUserModel().isScreenOwner();
         final int screenMenuTitle = !screenSharing ? R.string.more_open_screen :
-                        screenOwner ? R.string.more_close_screen : R.string.more_open_screen;
+                screenOwner ? R.string.more_close_screen : R.string.more_open_screen;
 
         mActionSheetDialog = ActionSheetFragment.getInstance(R.menu.sheet_meeting_more);
         mActionSheetDialog.resetMenuTitle(new HashMap<Integer, Integer>() {{
@@ -582,7 +591,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
         dismissUserDialog();
         RoomModel roomModel = roomVM.getRoomModel();
         UserModel localUserModel = localUserVM.getUserModel();
-        if(roomModel == null || localUserModel == null){
+        if (roomModel == null || localUserModel == null) {
             return;
         }
         if (roomModel.isScreenSharing() && localUserModel.isScreenOwner()) {
@@ -615,25 +624,42 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
 
         mActionSheetDialog.setOnItemClickListener((view, position, id) -> {
             RoomModel roomModel = roomVM.getRoomModel();
-            if(roomModel == null){
+            if (roomModel == null) {
                 return;
             }
-            String roomId = roomModel.roomId;
-            String userId = roomModel.getLocalUserId();
-            if(id == R.id.menu_close_meeting){
+            int roomIndex = roomModel.roomIndex;
+            String token = SpUtils.getString(requireContext(), Constant.SP.TOKEN, "");
+            if (id == R.id.menu_close_meeting) {
                 roomVM.close();
                 stopTimerCounter();
-                ((MeetingActivity) requireActivity()).showRateDialog(roomId, userId, null);
-            }else if(id == R.id.menu_exist_meeting){
+                closeMeeting(token, roomIndex);
+            } else if (id == R.id.menu_exist_meeting) {
                 roomVM.leave();
                 stopTimerCounter();
-                ((MeetingActivity) requireActivity()).showRateDialog(roomId, userId, null);
+                exitMeeting(token, roomIndex);
             }
         });
         if (!localUserVM.getUserModel().isHost()) {
-            mActionSheetDialog.removeMenu(Arrays.asList(R.id.menu_close_meeting));
+            mActionSheetDialog.removeMenu(Collections.singletonList(R.id.menu_close_meeting));
         }
         mActionSheetDialog.show(getChildFragmentManager(), null);
+    }
+
+    private void closeMeeting(String token, int roomIndex) {
+        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+        meetingService.closeMeeting(new RoomStatusReq(token, roomIndex))
+                .enqueue(new BaseCallback<>(data -> ((MeetingActivity) requireActivity()).navigateToRoomListPage(requireView()),
+                        throwable -> Toast.makeText(requireContext(), "关闭会议出错", Toast.LENGTH_SHORT).show()));
+    }
+
+    private void exitMeeting(String token, int roomIndex) {
+        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+        meetingService.exitMeeting(new RoomStatusReq(token, roomIndex))
+                .enqueue(new BaseCallback<>(data -> {
+                    Log.e("gaozy", "success");
+                    ((MeetingActivity) requireActivity()).backToRoomListPage(requireView());
+                },
+                        throwable -> Toast.makeText(requireContext(), "退出会议出错", Toast.LENGTH_SHORT).show()));
     }
 
     private void dismissUserDialog() {
@@ -641,13 +667,14 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
             mUserDialog.dismiss();
             mUserDialog = null;
         }
-        if(mActionSheetDialog != null){
+        if (mActionSheetDialog != null) {
             mActionSheetDialog.dismiss();
             mActionSheetDialog = null;
         }
     }
 
     private long lastCameraMsgSendTime = 0;
+
     private void checkCameraPermission(Runnable grantedRun) {
         if (AndPermission.hasPermissions(this, Permission.CAMERA)) {
             if (grantedRun != null) {
@@ -664,7 +691,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
                     }
                 })
                 .onDenied(data -> {
-                    if(System.currentTimeMillis() - lastCameraMsgSendTime > 10000){
+                    if (System.currentTimeMillis() - lastCameraMsgSendTime > 10000) {
                         lastCameraMsgSendTime = System.currentTimeMillis();
                         messageVM.sendActionShowMsg(
                                 getString(R.string.notify_toast_action_cam_denied),
@@ -676,6 +703,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
     }
 
     private long lastMicMsgSendTime = 0;
+
     private void checkMicPermission(Runnable grantedRun) {
         if (AndPermission.hasPermissions(this, Permission.RECORD_AUDIO)) {
             if (grantedRun != null) {
@@ -692,7 +720,7 @@ public class MeetingFragment extends BaseFragment<FragmentMeetingBinding> {
                     }
                 })
                 .onDenied(data -> {
-                    if(System.currentTimeMillis() - lastMicMsgSendTime > 10000){
+                    if (System.currentTimeMillis() - lastMicMsgSendTime > 10000) {
                         lastMicMsgSendTime = System.currentTimeMillis();
                         messageVM.sendActionShowMsg(
                                 getString(R.string.notify_toast_action_mic_denied),

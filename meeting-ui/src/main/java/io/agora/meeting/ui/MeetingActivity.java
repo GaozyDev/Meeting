@@ -33,8 +33,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.Locale;
 
 import io.agora.meeting.core.annotaion.Keep;
@@ -44,7 +42,6 @@ import io.agora.meeting.core.log.Logger;
 import io.agora.meeting.core.model.RoomModel;
 import io.agora.meeting.ui.base.AppBarDelegate;
 import io.agora.meeting.ui.databinding.LayoutRatingBinding;
-import io.agora.meeting.ui.fragment.MeetingFragmentArgs;
 import io.agora.meeting.ui.fragment.SimpleWebFragmentArgs;
 import io.agora.meeting.ui.fragment.WhiteBoardFragmentArgs;
 import io.agora.meeting.ui.util.NetworkUtil;
@@ -79,7 +76,6 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
 
         String json = getIntent().getStringExtra("json");
         if (!TextUtils.isEmpty(json)) {
-            EventBus.getDefault().postSticky(json);
 //            navigateToLoginPage(getWindow().getDecorView(), json);
         }
     }
@@ -271,7 +267,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                     if (titleRes == R.string.main_close_title) {
                         showRateDialog(roomId, userId, dismiss);
                     } else if (titleRes == R.string.main_removed_from_room) {
-                        navigateToLoginPage(getWindow().getDecorView());
+                        navigateToRoomListPage(getWindow().getDecorView());
                     }
                 }).setCancelable(false).show();
     }
@@ -297,7 +293,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
                 })
                 .setOnDismissListener(dialog1 -> {
                     if (dismiss != null) dismiss.run();
-                    navigateToLoginPage(getWindow().getDecorView());
+                    navigateToRoomListPage(getWindow().getDecorView());
                 })
                 .show();
     }
@@ -411,12 +407,12 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         safeNavigate(view, R.id.action_to_roomListFragment, null);
     }
 
-    public void navigateToWebPage(View view, String url) {
-        safeNavigate(view, R.id.action_to_webFragment, new SimpleWebFragmentArgs.Builder(url).build().toBundle());
+    public void navigateToRoomPage(View view, String roomId, int roomIndex) {
+        safeNavigate(view, R.id.action_to_meetingFragment, null);
     }
 
-    public void navigateToMainPage(View view, String roomId) {
-        safeNavigate(view, R.id.action_to_meetingFragment, new MeetingFragmentArgs.Builder(roomId).build().toBundle());
+    public void navigateToWebPage(View view, String url) {
+        safeNavigate(view, R.id.action_to_webFragment, new SimpleWebFragmentArgs.Builder(url).build().toBundle());
     }
 
     public void navigateToBoardPage(View view, String userId, String streamId) {
@@ -439,8 +435,8 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
 //        safeNavigate(view, R.id.action_global_loginFragment, null);
 //    }
 
-    public void navigateToLoginPage(View view) {
-        safeNavigate(view, R.id.action_global_loginFragment, null);
+    public void backToRoomListPage(View view) {
+        safeNavigate(view, R.id.action_global_roomListFragment, null);
     }
 
     public void navigateToAboutFragment(View view) {

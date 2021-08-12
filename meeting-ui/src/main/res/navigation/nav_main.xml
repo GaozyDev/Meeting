@@ -8,11 +8,14 @@
     <fragment
         android:id="@+id/loginFragment"
         android:name="io.agora.meeting.ui.fragment.LoginFragment"
-        android:label="fragment_login_s_s_o"
-        tools:layout="@layout/fragment_login" >
+        tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_to_roomListFragment"
-            app:destination="@id/roomListFragment" />
+            app:destination="@id/roomListFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -77,9 +80,6 @@
         android:id="@+id/meetingFragment"
         android:name="io.agora.meeting.ui.fragment.MeetingFragment"
         tools:layout="@layout/fragment_meeting">
-        <argument
-            android:name="roomId"
-            app:argType="string" />
         <action
             android:id="@+id/action_to_messageFragment"
             app:destination="@id/messageFragment"
@@ -194,4 +194,13 @@
         app:popUpTo="@id/loginFragment"
         app:popUpToInclusive="false" />
 
+    <action
+        android:id="@+id/action_global_roomListFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right"
+        app:popUpTo="@id/roomListFragment"
+        app:popUpToInclusive="false" />
 </navigation>

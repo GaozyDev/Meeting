@@ -77,9 +77,10 @@ public final class MeetingEngine {
                                       String userName, String userId,
                                       boolean userCameraOpen, boolean userMicOpen, // 用户信息
                                       int durationS, // 会议持续时间
-                                      int maxPeople // 会议最大人数
+                                      int maxPeople, // 会议最大人数
+                                      int roomIndex
     ) {
-        RoomModel roomMode = new RoomModel(mContext, roomName, roomId, roomPwd);
+        RoomModel roomMode = new RoomModel(mContext, roomName, roomId, roomPwd, roomIndex);
         roomMode.join(userName, userId, userCameraOpen, userMicOpen, durationS, maxPeople);
         return roomMode;
     }

@@ -92,7 +92,6 @@ dependencies {
 
     api "androidx.appcompat:appcompat:${safeExtGet('dependencies', 'androidx.appcompat:appcompat', '1.1.0')}"
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
-    implementation 'org.greenrobot:eventbus:3.2.0'
 
     implementation "com.google.code.gson:gson:${safeExtGet('dependencies', 'com.google.code.gson:gson', '2.8.6')}"
     implementation "com.squareup.retrofit2:retrofit:${safeExtGet('dependencies', 'com.squareup.retrofit2:retrofit', '2.9.0')}"

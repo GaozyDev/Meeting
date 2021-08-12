@@ -69,7 +69,7 @@ public class RoomViewModel extends ViewModel implements ViewModelStoreOwner {
     }
 
     public void enter(String roomName, String userName, String roomPwd, boolean openMic, boolean openCamera,
-                      int durationS, int maxPeople) {
+                      int durationS, int maxPeople, int roomIndex) {
         configInfo.roomName = roomName;
         configInfo.roomPwd = roomPwd;
         configInfo.userName = userName;
@@ -85,7 +85,8 @@ public class RoomViewModel extends ViewModel implements ViewModelStoreOwner {
                 roomName, CryptoUtil.md5(roomName), roomPwd,
                 userName, userId,
                 openMic, openCamera,
-                durationS, maxPeople
+                durationS, maxPeople,
+                roomIndex
         );
         roomM.registerCallback(new RoomModel.Callback() {
             @Override

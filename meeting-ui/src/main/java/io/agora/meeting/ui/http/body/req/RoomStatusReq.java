@@ -8,12 +8,12 @@ import io.agora.meeting.core.annotaion.Keep;
  * @since 3/10/21
  */
 @Keep
-public final class RoomEnterReq {
+public final class RoomStatusReq {
 
     public String token;
     public int index;
 
-    public RoomEnterReq(String token, int index) {
+    public RoomStatusReq(String token, int index) {
         this.token = token;
         this.index = index;
     }

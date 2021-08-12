@@ -61,7 +61,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:${rootProject.ext.dependencies['com.squareup.leakcanary:leakcanary-android']}"
+//    debugImplementation "com.squareup.leakcanary:leakcanary-android:${rootProject.ext.dependencies['com.squareup.leakcanary:leakcanary-android']}"
 
     implementation rootProject.findProject(':meeting-ui') != null ? project(':meeting-ui') : "io.github.agoraio-usecase.meeting:meeting-ui:${rootProject.ext.maven_version['io.github.agoraio-usecase.meeting:meeting-ui']}"
     implementation rootProject.findProject(':meeting-core') != null ? project(':meeting-core') : "io.github.agoraio-usecase.meeting:meeting-core:${rootProject.ext.maven_version['io.github.agoraio-usecase.meeting:meeting-core']}"

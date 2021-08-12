@@ -26,7 +26,6 @@ import io.agora.rte.AgoraRteUserInfo;
 /**
  * Description:
  *
- *
  * @since 2/7/21
  */
 @Keep
@@ -36,6 +35,8 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
     public final String roomId;
     public final String roomName;
     public final String roomPwd;
+    public final int roomIndex;
+
     private long roomStartTimestamp;
 
     private final List<UserModel> userModels;
@@ -55,11 +56,12 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         }
     };
 
-    public RoomModel(MeetingContext context, String roomName, String roomId, String roomPwd) {
+    public RoomModel(MeetingContext context, String roomName, String roomId, String roomPwd, int roomIndex) {
         this.context = context;
         this.roomName = roomName;
         this.roomPwd = roomPwd;
         this.roomId = roomId;
+        this.roomIndex = roomIndex;
         userModels = new CopyOnWriteArrayList<>();
         context.rteService.registerRoomChangerObserver(roomId, innerRoomObserver);
         context.msgHandler.setOnMsgReceiveListener(msgReceiveListener);
@@ -84,29 +86,20 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         joinReqParams = body;
         Logger.d("Enter Room >> RoomModel join userId=" + userId);
         context.roomService.join(context.config.appId, roomId, body)
-                .enqueue(new BaseCallback<>(new BaseCallback.SuccessCallback<JoinResp>() {
-                    @Override
-                    public void onSuccess(JoinResp data) {
-                        roomStartTimestamp = data.startTime;
-                        context.rteService.joinRoom(roomId, localUserId, userName, data.streamId, data.userRole);
-                    }
-                }, new BaseCallback.FailureCallback() {
-                    @Override
-                    public void onFailure(Throwable error) {
-                        RoomModel.this.invokeCallback(callback -> {
-                            callback.onError(error);
-                            RoomModel.this.release();
-                        });
-                    }
-                }));
+                .enqueue(new BaseCallback<>(data -> {
+                    roomStartTimestamp = data.startTime;
+                    context.rteService.joinRoom(roomId, localUserId, userName, data.streamId, data.userRole);
+                }, error -> RoomModel.this.invokeCallback(callback -> {
+                    callback.onError(error);
+                    RoomModel.this.release();
+                })));
     }
-
 
 
     /**
      * @return 房间创建时间
      */
-    public long getStartTimestamp(){
+    public long getStartTimestamp() {
         return roomStartTimestamp;
     }
 
@@ -226,8 +219,8 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         context.rteService.leaveRoom();
     }
 
-    private void rejoinWithoutRte(){
-        if(joinReqParams == null){
+    private void rejoinWithoutRte() {
+        if (joinReqParams == null) {
             return;
         }
         context.roomService.join(context.config.appId, roomId, joinReqParams)
@@ -251,7 +244,7 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
     public boolean screenOwnerOnline() {
         String screenOwnerId = context.rteService.getRoomProperties().getScreenOwnerId();
         for (UserModel userModel : userModels) {
-            if(userModel.getUserId().equals(screenOwnerId)){
+            if (userModel.getUserId().equals(screenOwnerId)) {
                 return true;
             }
         }
@@ -261,7 +254,7 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
     public boolean boardOwnerOnline() {
         String boardOwnerId = context.rteService.getRoomProperties().getBoardOwnerId();
         for (UserModel userModel : userModels) {
-            if(userModel.getUserId().equals(boardOwnerId)){
+            if (userModel.getUserId().equals(boardOwnerId)) {
                 return true;
             }
         }
@@ -318,7 +311,7 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         public void onUserJoined(AgoraRteUserInfo user) {
             Logger.d("Enter Room >> RoomModel onUserJoined=" + user);
             UserModel userM = getUserModelByUserId(user.getUserId());
-            if(userM == null){
+            if (userM == null) {
                 UserModel nUM = new UserModel(context, user);
                 userModels.add(nUM);
                 context.msgHandler.handleUserState(nUM, false);
@@ -330,10 +323,10 @@ public final class RoomModel extends BaseModel<RoomModel.Callback> {
         public void onUserLeft(AgoraRteUserInfo userInfo) {
             UserModel userM = getUserModelByUserId(userInfo.getUserId());
             if (userM != null) {
-                if(userM.isLocal()){
+                if (userM.isLocal()) {
                     invokeCallback(Callback::onKickedOut);
                     release();
-                }else{
+                } else {
                     userModels.remove(userM);
                     context.msgHandler.handleUserState(userM, true);
                     invokeCallback(callback -> callback.onUserModelRemove(userM));

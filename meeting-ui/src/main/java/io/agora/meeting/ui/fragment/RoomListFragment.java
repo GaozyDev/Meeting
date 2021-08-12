@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,13 +24,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.Locale;
 
 import io.agora.meeting.core.RtcNetworkMonitor;
@@ -44,7 +36,7 @@ import io.agora.meeting.ui.base.BaseFragment;
 import io.agora.meeting.ui.databinding.FragmentRoomListBinding;
 import io.agora.meeting.ui.http.BaseCallback;
 import io.agora.meeting.ui.http.MeetingService;
-import io.agora.meeting.ui.http.body.req.RoomEnterReq;
+import io.agora.meeting.ui.http.body.req.RoomStatusReq;
 import io.agora.meeting.ui.http.body.req.VerifyTokenReq;
 import io.agora.meeting.ui.http.network.RetrofitManager;
 import io.agora.meeting.ui.ui.RoomRecyclerAdapter;
@@ -56,18 +48,11 @@ import io.agora.meeting.ui.util.ToastUtil;
 import io.agora.meeting.ui.viewmodel.PreferenceViewModel;
 import io.agora.meeting.ui.viewmodel.RoomViewModel;
 import io.agora.meeting.ui.widget.TipsPopup;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     private PreferenceViewModel preferenceVM;
 
     private RoomViewModel roomVM;
-
-    private boolean isCreateMeeting = true;
 
     private RoomRecyclerAdapter mRoomAdapter;
 
@@ -79,7 +64,6 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -90,30 +74,6 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
         ViewModelProvider provider = new ViewModelProvider(requireActivity());
         preferenceVM = provider.get(PreferenceViewModel.class);
         roomVM = provider.get(RoomViewModel.class);
-
-        EventBus.getDefault().register(this);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(String json) {
-        if (!TextUtils.isEmpty(json)) {
-            try {
-                JSONObject jsonObject = new JSONObject(json);
-                roomVM.enter(
-                        jsonObject.getString("roomName"),
-                        jsonObject.getString("userName"),
-                        jsonObject.getString("roomPwd"),
-                        jsonObject.getBoolean("openMic"),
-                        jsonObject.getBoolean("openCamera"),
-                        jsonObject.getInt("durationS"),
-                        jsonObject.getInt("maxPeople")
-                );
-                Toast.makeText(getContext(), "正在加入会议~", Toast.LENGTH_SHORT).show();
-                isCreateMeeting = false;
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -175,53 +135,11 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
         boolean ret = binding.aetRoomName.check();
         if (!ret) return false;
         ret = binding.aetName.check();
-        if (!ret) return false;
         return ret;
     }
 
     private void enterRoom() {
-        roomVM.enter(
-                binding.aetRoomName.getText(),
-                binding.aetName.getText(),
-                binding.aetRoomPwd.getText(),
-                binding.swMic.isChecked() && AndPermission.hasPermissions(this, Permission.RECORD_AUDIO),
-                binding.swCamera.isChecked() && AndPermission.hasPermissions(this, Permission.CAMERA),
-                preferenceVM.getMeetingDuration().getValue(),
-                preferenceVM.getMeetingMaxPeople().getValue()
-        );
-    }
 
-    // TODO 临时代码
-    private void create(String roomName, String userName, String roomPwd, boolean openMic, boolean openCamera,
-                        int durationS, int maxPeople) {
-        MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
-        String URL = "http://quick.nat300.top";
-        RequestBody requestBody = RequestBody.create(mediaType,
-                "roomName=" + roomName
-                        + "&userName=" + userName
-                        + "&roomPwd=" + roomPwd
-                        + "&openMic=" + openMic
-                        + "&openCamera=" + openCamera
-                        + "&durationS=" + durationS
-                        + "&maxPeople=" + maxPeople
-        );
-        Request request = new Request.Builder()
-                .url(URL + "/createMeeting")
-                .post(requestBody)
-                .build();
-        OkHttpClient client = new OkHttpClient();
-        try {
-            try (Response response = client.newCall(request).execute()) {
-                JSONObject jsonObject = new JSONObject(response.body().string());
-                int code = jsonObject.getInt("code");
-                if (code == 0) {
-                    JSONObject data = jsonObject.getJSONObject("data");
-                    Log.e("gaozy", "createMeeting:" + data);
-                }
-            }
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initSaveConfigView() {
@@ -246,16 +164,7 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
             if (!roomModel.hasJoined()) {
                 return;
             }
-            if (isCreateMeeting) {
-                new Thread(() -> create(binding.aetRoomName.getText(),
-                        binding.aetName.getText(),
-                        binding.aetRoomPwd.getText(),
-                        binding.swMic.isChecked() && AndPermission.hasPermissions(RoomListFragment.this, Permission.RECORD_AUDIO),
-                        binding.swCamera.isChecked() && AndPermission.hasPermissions(RoomListFragment.this, Permission.CAMERA),
-                        preferenceVM.getMeetingDuration().getValue(),
-                        preferenceVM.getMeetingMaxPeople().getValue())).start();
-            }
-            ((MeetingActivity) requireActivity()).navigateToMainPage(requireView(), roomModel.roomId);
+            ((MeetingActivity) requireActivity()).navigateToRoomPage(requireView(), roomModel.roomId, roomModel.roomIndex);
         });
         preferenceVM.getCameraFront().observe(getViewLifecycleOwner(), enable -> {
             MeetingApplication.getMeetingEngine().setDefaultCameraFont(enable);
@@ -338,9 +247,9 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                         throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
     }
 
-    private void getRoomEnter(String token, int index) {
+    private void getRoomEnter(String token, int roomIndex) {
         MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
-        meetingService.roomEnter(new RoomEnterReq(token, index))
+        meetingService.roomEnter(new RoomStatusReq(token, roomIndex))
                 .enqueue(new BaseCallback<>(data -> {
                     roomVM.enter(
                             data.id,
@@ -349,7 +258,8 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                             binding.swMic.isChecked() && AndPermission.hasPermissions(this, Permission.RECORD_AUDIO),
                             binding.swCamera.isChecked() && AndPermission.hasPermissions(this, Permission.CAMERA),
                             preferenceVM.getMeetingDuration().getValue(),
-                            preferenceVM.getMeetingMaxPeople().getValue()
+                            preferenceVM.getMeetingMaxPeople().getValue(),
+                            roomIndex
                     );
                 },
                         throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
