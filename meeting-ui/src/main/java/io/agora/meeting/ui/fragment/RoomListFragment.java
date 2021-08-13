@@ -25,6 +25,8 @@ import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import io.agora.meeting.core.RtcNetworkMonitor;
 import io.agora.meeting.core.annotaion.DeviceNetQuality;
@@ -59,6 +61,8 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
 
     private LoadingDialog mEnterLoadingDialog;
 
+    private Timer mTimer;
+
     @Override
     public void onStart() {
         super.onStart();
@@ -67,6 +71,10 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     @Override
     public void onStop() {
         super.onStop();
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer = null;
+        }
     }
 
     @Override
@@ -245,15 +253,23 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                 }, throwable -> {
                     Toast.makeText(requireContext(), "Token校验失败了~", Toast.LENGTH_SHORT).show();
                     SpUtils.delAll(requireContext());
-                    ((MeetingActivity)requireActivity()).backToLoginFragment(requireView());
+                    ((MeetingActivity) requireActivity()).backToLoginFragment(requireView());
                 }));
     }
 
     private void getRoomList(String token) {
-        MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
-        meetingService.roomList(new VerifyTokenReq(token))
-                .enqueue(new BaseCallback<>(data -> mRoomAdapter.setRoomList(data),
-                        throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
+        if (mTimer == null) {
+            mTimer = new Timer();
+        }
+        mTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
+                meetingService.roomList(new VerifyTokenReq(token))
+                        .enqueue(new BaseCallback<>(data -> mRoomAdapter.setRoomList(data),
+                                throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
+            }
+        }, 0, 2000);
     }
 
     private void getRoomEnter(String token, int roomIndex) {
