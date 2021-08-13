@@ -14,8 +14,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
-import android.widget.RatingBar;
-import android.widget.TextView;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -229,7 +227,7 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
         new AlertDialog.Builder(this)
                 .setMessage(titleRes)
                 .setPositiveButton(R.string.cmm_know, (dialog, which) -> {
-                    navigateToRoomListPage(getWindow().getDecorView());
+                    backToRoomListPage(getWindow().getDecorView());
                 }).setCancelable(false).show();
     }
 
@@ -354,6 +352,10 @@ public class MeetingActivity extends AppCompatActivity implements AppBarDelegate
 
     public void backToRoomListPage(View view) {
         safeNavigate(view, R.id.action_global_roomListFragment, null);
+    }
+
+    public void backToLoginFragment(View view) {
+        Navigation.findNavController(view).navigate(R.id.action_global_loginFragment, null);
     }
 
     public void navigateToAboutFragment(View view) {

@@ -243,8 +243,9 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
                     preferenceVM.getUsername().setValue(data.name);
                     getRoomList(token);
                 }, throwable -> {
-                    // TODO 清除登录信息
                     Toast.makeText(requireContext(), "Token校验失败了~", Toast.LENGTH_SHORT).show();
+                    SpUtils.delAll(requireContext());
+                    ((MeetingActivity)requireActivity()).backToLoginFragment(requireView());
                 }));
     }
 
@@ -258,18 +259,16 @@ public class RoomListFragment extends BaseFragment<FragmentRoomListBinding> {
     private void getRoomEnter(String token, int roomIndex) {
         MeetingService meetingService = RetrofitManager.instance().getService(Constant.MEETING_URL, MeetingService.class);
         meetingService.roomEnter(new RoomStatusReq(token, roomIndex))
-                .enqueue(new BaseCallback<>(data -> {
-                    roomVM.enter(
-                            data.id,
-                            preferenceVM.getUsername().getValue(),
-                            data.pass,
-                            binding.swMic.isChecked() && AndPermission.hasPermissions(this, Permission.RECORD_AUDIO),
-                            binding.swCamera.isChecked() && AndPermission.hasPermissions(this, Permission.CAMERA),
-                            preferenceVM.getMeetingDuration().getValue(),
-                            preferenceVM.getMeetingMaxPeople().getValue(),
-                            roomIndex
-                    );
-                },
+                .enqueue(new BaseCallback<>(data -> roomVM.enter(
+                        data.id,
+                        preferenceVM.getUsername().getValue(),
+                        data.pass,
+                        binding.swMic.isChecked() && AndPermission.hasPermissions(this, Permission.RECORD_AUDIO),
+                        binding.swCamera.isChecked() && AndPermission.hasPermissions(this, Permission.CAMERA),
+                        preferenceVM.getMeetingDuration().getValue(),
+                        preferenceVM.getMeetingMaxPeople().getValue(),
+                        roomIndex
+                ),
                         throwable -> Toast.makeText(requireContext(), "房间列表获取失败", Toast.LENGTH_SHORT).show()));
     }
 
